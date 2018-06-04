@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
         btnSendNick.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //send the message
                 senderMsg.sendMessage("My Message "+etNick.getText().toString());
             }
         });
