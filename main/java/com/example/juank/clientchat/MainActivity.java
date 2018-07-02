@@ -8,14 +8,14 @@ import android.widget.EditText;
 
 public class MainActivity extends AppCompatActivity {
     Connection con;
-    SenderMsg senderMsg;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         con = new Connection();
         con.execute();
-        senderMsg = new SenderMsg();
+
 
         final EditText etNick= findViewById(R.id.etNick);
         Button btnSendNick = findViewById(R.id.btnSendNick);
@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 //send the message
-                senderMsg.sendMessage("My Message "+etNick.getText().toString());
+                con.sendMessage("NICK 12"+etNick.getText().toString());
             }
         });
     }
