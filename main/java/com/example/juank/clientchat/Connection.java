@@ -7,17 +7,27 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 
 public class Connection extends AsyncTask<Void ,Void, Void> {
     public static Socket socket;
 
+    /*to send*/
     private HandlerThread handlerThreadSender;
     private Handler handlerSend;
     private BufferedWriter out;
+
+    /*to receive*/
+    private HandlerThread handlerThreadReceiver;
+    private Handler handlerRecibir;
+    private Handler handlerHiloP;
+    private BufferedReader in;
+
 
     public static Socket connect(){
         try {
@@ -44,7 +54,7 @@ public class Connection extends AsyncTask<Void ,Void, Void> {
             @Override
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
-                socket =Connection.socket;
+                //socket =Connection.socket;
                 try {
                     out  =new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
                     Log.w ("ESTO ES MI MENSAJE A ENVIAR",msg.obj.toString() );
@@ -66,6 +76,40 @@ public class Connection extends AsyncTask<Void ,Void, Void> {
         msg.obj=mMessage;
         /* Now i send message to HandlerSend so that the message is sent to my server*/
         handlerSend.sendMessage(msg);
+
+    }
+    /* handler thread to receive messages*/
+    public void recibirMensaje(final Handler handlerHiloPrin){
+        handlerHiloP = handlerHiloPrin;
+        handlerThreadReceiver = new HandlerThread("recibir");
+        handlerThreadReceiver.start();
+        /* ademas de hacer referancia el handler del hilo principal, tambien hay que hacerlo con el hiloprincipal*/
+        Looper looper = handlerThreadReceiver.getLooper();
+        handlerHiloP = new Handler(looper){
+            @Override
+            public void handleMessage(Message msg) {
+                super.handleMessage(msg);
+                String mensajeRec;
+
+                try {
+
+                    in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+                    while((mensajeRec= in.readLine())!=null){
+                        Message mensaje = handlerHiloPrin.obtainMessage();
+                        mensaje.obj=mensajeRec;
+                        handlerHiloPrin.sendMessage(mensaje);
+                        Log.w("MI MENSAJE A ENVIAR A UI :"," " +mensajeRec);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        Log.w("ESTO RECIBE EN EL HANDLER FUERA DEL HILO:", handlerHiloP.obtainMessage().toString());
+        /*esto acciona el hilo*/
+        Message mensaje=handlerHiloP.obtainMessage();
+        handlerHiloP.sendMessage(mensaje);
+
 
     }
 }
